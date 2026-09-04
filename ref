@@ -2674,7 +2674,7 @@ function MyLibrary:MakeWindow(Configs)
 
 	local WTitle = Configs[1] or Configs.Name or Configs.Title or "redz Library V5"
 
-	local WMiniText = Configs[2] or Configs.SubTitle or "by : redz9999"
+	local WMiniText = Configs[2] or Configs.SubTitle or "owner: CSRD"
 
 	
 
@@ -2736,11 +2736,8 @@ function MyLibrary:MakeWindow(Configs)
 
 	}), "Main")
 
-	Make("Gradient", MainFrame, {
-
-		Rotation = 45
-
-	})MakeDrag(MainFrame)
+	-- Gradient removido para a imagem de fundo aparecer corretamente
+	MakeDrag(MainFrame)
 
 	
 
@@ -2853,7 +2850,7 @@ function MyLibrary:MakeWindow(Configs)
 
 		ScrollBarThickness = 1.5,
 
-		BackgroundTransparency = 0.1,
+		BackgroundTransparency = 0.45,
 
 		ScrollBarImageTransparency = 0.1,
 
@@ -3049,7 +3046,7 @@ function MyLibrary:MakeWindow(Configs)
 
 			Title = "Close",
 
-			Text = "Tem certeza que Quer fechar o nosso Hub Nebulith?",
+			Text = "Tem certeza que quer fechar o Hub?",
 
 			Options = {
 
@@ -3508,7 +3505,7 @@ local Container = InsertTheme(Create("ScrollingFrame", {
     AnchorPoint = Vector2.new(0, 1),
     ScrollBarThickness = 1.5,
     BackgroundColor3 = Theme["Color Hub 2"],
-    BackgroundTransparency = 0,
+    BackgroundTransparency = 0.35,
     ScrollBarImageTransparency = 0.1,
     ScrollBarImageColor3 = Theme["Color Theme"],
     AutomaticCanvasSize = "Y",
