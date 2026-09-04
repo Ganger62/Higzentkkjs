@@ -20,6 +20,7 @@ local MyLibrary = {
 
 	Themes = {		Main = {
 
+			-- Tema Preto & Branco
 
 			["Color Hub 1"] = ColorSequence.new({
 				ColorSequenceKeypoint.new(0.00, Color3.fromRGB(15, 15, 15)),
@@ -2849,7 +2850,7 @@ function MyLibrary:MakeWindow(Configs)
 
 		ScrollBarThickness = 1.5,
 
-		BackgroundTransparency = 0.55,
+		BackgroundTransparency = 1,
 
 		ScrollBarImageTransparency = 0.1,
 
@@ -5251,5 +5252,3 @@ local Container = InsertTheme(Create("ScrollingFrame", {
 end
 
 return MyLibrary
-
-
