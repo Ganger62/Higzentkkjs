@@ -1886,18 +1886,12 @@ local Funcs = {} do
 
 	
 
-	function Funcs:ToggleParent(Obj, Parent)
-
+	function Funcs:ToggleParent(Obj, Bool, Parent)
 		if Bool ~= nil then
-
-			Obj.Parent = Bool
-
+			Obj.Parent = Bool and Parent or nil
 		else
-
-			Obj.Parent = not Obj.Parent and Parent
-
+			Obj.Parent = (not Obj.Parent) and Parent or nil
 		end
-
 	end
 
 	
@@ -2728,11 +2722,11 @@ function MyLibrary:MakeWindow(Configs)
 
 		Position = UDim2.new(0.5, -UISizeX/2, 0.5, -UISizeY/2),
 
-		BackgroundTransparency = 0,
+		BackgroundTransparency = 1,
 
 		Name = "Hub",
 
-		Image = "rbxassetid://112480479939283",  -- NOVA IMAGEM DE FUNDO ADICIONADA
+		Image = "rbxassetid://134332036527605",  
 
 		ImageColor3 = Color3.fromRGB(255, 255, 255),
 
@@ -2782,9 +2776,18 @@ function MyLibrary:MakeWindow(Configs)
 
 	
 
+	local TitleIcon = Create("ImageLabel", TopBar, {
+		Size = UDim2.new(0, 18, 0, 18),
+		Position = UDim2.new(0, 12, 0.5),
+		AnchorPoint = Vector2.new(0, 0.5),
+		BackgroundTransparency = 1,
+		Image = "rbxassetid://118081939698796",
+		Name = "TitleIcon"
+	})
+
 	local Title = InsertTheme(Create("TextLabel", TopBar, {
 
-		Position = UDim2.new(0, 15, 0.5),
+		Position = UDim2.new(0, 35, 0.5),
 
 		AnchorPoint = Vector2.new(0, 0.5),
 
@@ -3498,8 +3501,8 @@ end
 
 		
 
--- CORREÇÃO PRINCIPAL: Container com sintaxe correta
-local Container = InsertTheme(Create("ScrollingFrame", Containers, {
+-- CORREÇÃO PRINCIPAL: Container sem parent inicial (para permitir troca de abas)
+local Container = InsertTheme(Create("ScrollingFrame", {
     Size = UDim2.new(1, 0, 1, 0),
     Position = UDim2.new(0, 0, 1),
     AnchorPoint = Vector2.new(0, 1),
@@ -3525,15 +3528,13 @@ local Container = InsertTheme(Create("ScrollingFrame", Containers, {
     })
 }), "Frame")
 
-		
-
 		table.insert(ContainerList, Container)
 
-		
+		-- Só a primeira aba começa visível
+		if not FirstTab then
+			Container.Parent = Containers
+		end
 
-		if not FirstTab then Container.Parent = Containers end
-
-		
 
 		local function Tabs()
 
@@ -5254,3 +5255,5 @@ local Container = InsertTheme(Create("ScrollingFrame", Containers, {
 end
 
 return MyLibrary
+
+
