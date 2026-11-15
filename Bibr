@@ -1538,7 +1538,7 @@ function redzlib:MakeWindow(Configs)
 		Size = UDim2.fromOffset(UISizeX, UISizeY),
 		Position = UDim2.new(0.5, -UISizeX/2, 0.5, -UISizeY/2),
 		BackgroundTransparency = 0.03,
-		Image = "rbxassetid://86120538359038",
+		Image = "rbxassetid://128948547134031",
 		ScaleType = Enum.ScaleType.Crop,
 		ImageTransparency = 0,
 		Name = "Hub"
