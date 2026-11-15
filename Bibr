@@ -1686,9 +1686,17 @@ function redzlib:MakeWindow(Configs)
 		Name = "Minimize"
 	})
 	
+	-- Botão de Configurações (engrenagem)
+	local SettingsButton = SetProps(CloseButton:Clone(), {
+		Position = UDim2.new(1, -60, 0.5),
+		Image = "rbxassetid://139318262000877",
+		Name = "Settings"
+	})
+	
 	SetChildren(ButtonsFolder, {
 		CloseButton,
-		MinimizeButton
+		MinimizeButton,
+		SettingsButton
 	})
 	
 	local Minimized, SaveSize, WaitClick
@@ -1726,6 +1734,162 @@ function redzlib:MakeWindow(Configs)
 		
 		WaitClick = false
 	end
+	
+	-- ==================== SETTINGS PANEL ====================
+	local CurrentScaleLevel = 5 -- 1 a 10 (5 = normal)
+	
+	local function ApplyUIScale(level)
+		level = math.clamp(math.floor(level + 0.5), 1, 10)
+		CurrentScaleLevel = level
+		-- Mapeia 1~10 para um range legível de escala
+		-- level 1 = menor, level 10 = maior
+		local base = 450
+		local mapped = base + (5 - level) * 40  -- level 5 = 450, level 1 = 610 (menor), level 10 = 250 (maior)
+		mapped = math.clamp(mapped, 250, 700)
+		redzlib:SetScale(mapped)
+	end
+	
+	function Window:OpenSettings()
+		if MainFrame:FindFirstChild("SettingsPanel") then return end
+		if Minimized then Window:MinimizeBtn() end
+		
+		local Panel = Create("Frame", MainFrame, {
+			Name = "SettingsPanel",
+			Size = UDim2.fromOffset(260, 140),
+			Position = UDim2.fromScale(0.5, 0.5),
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			BackgroundColor3 = Theme["Color Hub 2"],
+			BackgroundTransparency = 0.05,
+			ZIndex = 50
+		})
+		Make("Corner", Panel, UDim.new(0, 10))
+		Make("Stroke", Panel)
+		Make("Gradient", Panel, {Rotation = 45})
+		
+		local Title = InsertTheme(Create("TextLabel", Panel, {
+			Size = UDim2.new(1, -20, 0, 24),
+			Position = UDim2.new(0, 10, 0, 8),
+			BackgroundTransparency = 1,
+			Font = Enum.Font.GothamBold,
+			Text = "Configurações",
+			TextColor3 = Theme["Color Text"],
+			TextSize = 14,
+			TextXAlignment = "Left"
+		}), "Text")
+		
+		local SizeLabel = InsertTheme(Create("TextLabel", Panel, {
+			Size = UDim2.new(1, -20, 0, 18),
+			Position = UDim2.new(0, 10, 0, 38),
+			BackgroundTransparency = 1,
+			Font = Enum.Font.GothamMedium,
+			Text = "Tamanho da Interface: " .. CurrentScaleLevel,
+			TextColor3 = Theme["Color Dark Text"],
+			TextSize = 11,
+			TextXAlignment = "Left",
+			Name = "SizeLabel"
+		}), "DarkText")
+		
+		-- Slider Holder
+		local SliderHolder = Create("Frame", Panel, {
+			Size = UDim2.new(1, -30, 0, 20),
+			Position = UDim2.new(0.5, 0, 0, 70),
+			AnchorPoint = Vector2.new(0.5, 0),
+			BackgroundTransparency = 1
+		})
+		
+		local SliderBar = InsertTheme(Create("Frame", SliderHolder, {
+			Size = UDim2.new(1, 0, 0, 6),
+			Position = UDim2.new(0, 0, 0.5, 0),
+			AnchorPoint = Vector2.new(0, 0.5),
+			BackgroundColor3 = Theme["Color Stroke"]
+		}), "Stroke")
+		Make("Corner", SliderBar, UDim.new(1, 0))
+		
+		local Fill = InsertTheme(Create("Frame", SliderBar, {
+			Size = UDim2.new((CurrentScaleLevel - 1) / 9, 0, 1, 0),
+			BackgroundColor3 = Theme["Color Theme"]
+		}), "Theme")
+		Make("Corner", Fill, UDim.new(1, 0))
+		
+		local Knob = Create("Frame", SliderBar, {
+			Size = UDim2.new(0, 14, 0, 14),
+			Position = UDim2.new((CurrentScaleLevel - 1) / 9, 0, 0.5, 0),
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			ZIndex = 2
+		})
+		Make("Corner", Knob, UDim.new(1, 0))
+		
+		local dragging = false
+		local function UpdateSlider(inputPos)
+			local absPos = SliderBar.AbsolutePosition
+			local absSize = SliderBar.AbsoluteSize
+			local relative = math.clamp((inputPos.X - absPos.X) / absSize.X, 0, 1)
+			local level = 1 + relative * 9
+			level = math.clamp(math.floor(level + 0.5), 1, 10)
+			
+			Fill.Size = UDim2.new((level - 1) / 9, 0, 1, 0)
+			Knob.Position = UDim2.new((level - 1) / 9, 0, 0.5, 0)
+			SizeLabel.Text = "Tamanho da Interface: " .. level
+			ApplyUIScale(level)
+		end
+		
+		Knob.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				dragging = true
+			end
+		end)
+		
+		SliderBar.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				dragging = true
+				UpdateSlider(input.Position)
+			end
+		end)
+		
+		UserInputService.InputChanged:Connect(function(input)
+			if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+				UpdateSlider(input.Position)
+			end
+		end)
+		
+		UserInputService.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				dragging = false
+			end
+		end)
+		
+		-- Botão Fechar
+		local CloseSettings = Create("TextButton", Panel, {
+			Size = UDim2.new(0, 70, 0, 26),
+			Position = UDim2.new(0.5, 0, 1, -12),
+			AnchorPoint = Vector2.new(0.5, 1),
+			BackgroundColor3 = Theme["Color Theme"],
+			Text = "Fechar",
+			Font = Enum.Font.GothamBold,
+			TextSize = 12,
+			TextColor3 = Color3.fromRGB(255, 255, 255),
+			AutoButtonColor = false
+		})
+		Make("Corner", CloseSettings, UDim.new(0, 6))
+		
+		CloseSettings.Activated:Connect(function()
+			CreateTween({Panel, "Size", UDim2.fromOffset(260 * 0.9, 140 * 0.9), 0.15})
+			CreateTween({Panel, "BackgroundTransparency", 1, 0.15, true})
+			Panel:Destroy()
+		end)
+		
+		-- Animação de entrada
+		Panel.Size = UDim2.fromOffset(260 * 1.1, 140 * 1.1)
+		Panel.BackgroundTransparency = 1
+		CreateTween({Panel, "Size", UDim2.fromOffset(260, 140), 0.2})
+		CreateTween({Panel, "BackgroundTransparency", 0.05, 0.2})
+	end
+	
+	SettingsButton.Activated:Connect(function()
+		Window:OpenSettings()
+	end)
+	
 	function Window:Minimize()
 		MainFrame.Visible = not MainFrame.Visible
 	end
@@ -1896,7 +2060,6 @@ function redzlib:MakeWindow(Configs)
 			Size = UDim2.new(1, 0, 0, 24)
 		})Make("Corner", TabSelect, UDim.new(0, 12)) -- borda mais redonda
 		
-		-- Stroke mais forte quando selecionada (preto)
 		local TabStroke = Create("UIStroke", TabSelect, {
 			Color = Color3.fromRGB(0, 0, 0),
 			Thickness = FirstTab and 1 or 2.5,
@@ -1926,7 +2089,7 @@ function redzlib:MakeWindow(Configs)
 			ImageTransparency = (FirstTab and 0.3) or 0
 		}), "NoTint")
 		
-		-- Indicador de seleção: um lado branco e o outro preto
+		-- Indicador: um lado branco e o outro preto
 		local SelectedWhite = Create("Frame", TabSelect, {
 			Size = FirstTab and UDim2.new(0, 3, 0, 4) or UDim2.new(0, 3, 0, 14),
 			Position = UDim2.new(0, 1, 0.5),
@@ -1945,7 +2108,7 @@ function redzlib:MakeWindow(Configs)
 			Name = "SelectedBlack"
 		})Make("Corner", SelectedBlack, UDim.new(0.5, 0))
 		
-		local Selected = SelectedWhite -- referência
+		local Selected = SelectedWhite
 		
 		local Container = InsertTheme(Create("ScrollingFrame", {
 			Size = UDim2.new(1, 0, 1, 0),
@@ -1995,15 +2158,12 @@ function redzlib:MakeWindow(Configs)
 			CreateTween({Container, "Size", UDim2.new(1, 0, 1, 0), 0.3})
 			CreateTween({LabelTitle, "TextTransparency", 0, 0.35})
 			CreateTween({LabelIcon, "ImageTransparency", 0, 0.35})
-			-- Indicador mais forte: branco + preto
 			CreateTween({SelectedWhite, "Size", UDim2.new(0, 3, 0, 14), 0.35})
 			CreateTween({SelectedWhite, "BackgroundTransparency", 0, 0.35})
 			CreateTween({SelectedBlack, "Size", UDim2.new(0, 3, 0, 14), 0.35})
 			CreateTween({SelectedBlack, "BackgroundTransparency", 0, 0.35})
-			-- Borda mais forte (preta)
 			CreateTween({TabStroke, "Thickness", 2.5, 0.25})
 			CreateTween({TabStroke, "Transparency", 0, 0.25})
-			CreateTween({TabStroke, "Color", Color3.fromRGB(0, 0, 0), 0.25})
 		end
 		TabSelect.Activated:Connect(Tabs)
 		
@@ -2020,7 +2180,6 @@ function redzlib:MakeWindow(Configs)
 			CreateTween({SelectedWhite, "BackgroundTransparency", 1, 0.35})
 			CreateTween({SelectedBlack, "Size", UDim2.new(0, 3, 0, 4), 0.35})
 			CreateTween({SelectedBlack, "BackgroundTransparency", 1, 0.35})
-			-- Borda volta ao normal
 			CreateTween({TabStroke, "Thickness", 1, 0.25})
 			CreateTween({TabStroke, "Transparency", 0.75, 0.25})
 		end
