@@ -1548,7 +1548,21 @@ function redzlib:MakeWindow(Configs)
 		Enabled = false
 	})MakeDrag(MainFrame)
 	
-	local MainCorner = Make("Corner", MainFrame)
+	-- Borda principal mais redonda + preto/branco
+	local MainCorner = Make("Corner", MainFrame, UDim.new(0, 14))
+	local MainStrokeBlack = Create("UIStroke", MainFrame, {
+		Color = Color3.fromRGB(0, 0, 0),
+		Thickness = 2.5,
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+		Name = "MainStrokeBlack"
+	})
+	local MainStrokeWhite = Create("UIStroke", MainFrame, {
+		Color = Color3.fromRGB(255, 255, 255),
+		Thickness = 1,
+		Transparency = 0.3,
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+		Name = "MainStrokeWhite"
+	})
 	
 	local Components = Create("Folder", MainFrame, {
 		Name = "Components"
@@ -1686,7 +1700,7 @@ function redzlib:MakeWindow(Configs)
 		Name = "Minimize"
 	})
 	
-	-- Botão de Configurações (engrenagem)
+	-- Botão engrenagem (Settings)
 	local SettingsButton = SetProps(CloseButton:Clone(), {
 		Position = UDim2.new(1, -60, 0.5),
 		Image = "rbxassetid://139318262000877",
@@ -1735,16 +1749,14 @@ function redzlib:MakeWindow(Configs)
 		WaitClick = false
 	end
 	
-	-- ==================== SETTINGS PANEL ====================
-	local CurrentScaleLevel = 5 -- 1 a 10 (5 = normal)
+	-- ==================== SETTINGS (Black & White) ====================
+	local CurrentScaleLevel = 5
 	
 	local function ApplyUIScale(level)
 		level = math.clamp(math.floor(level + 0.5), 1, 10)
 		CurrentScaleLevel = level
-		-- Mapeia 1~10 para um range legível de escala
-		-- level 1 = menor, level 10 = maior
 		local base = 450
-		local mapped = base + (5 - level) * 40  -- level 5 = 450, level 1 = 610 (menor), level 10 = 250 (maior)
+		local mapped = base + (5 - level) * 40
 		mapped = math.clamp(mapped, 250, 700)
 		redzlib:SetScale(mapped)
 	end
@@ -1753,80 +1765,99 @@ function redzlib:MakeWindow(Configs)
 		if MainFrame:FindFirstChild("SettingsPanel") then return end
 		if Minimized then Window:MinimizeBtn() end
 		
+		-- Painel Black & White (alto contraste, legível)
 		local Panel = Create("Frame", MainFrame, {
 			Name = "SettingsPanel",
-			Size = UDim2.fromOffset(260, 140),
+			Size = UDim2.fromOffset(270, 155),
 			Position = UDim2.fromScale(0.5, 0.5),
 			AnchorPoint = Vector2.new(0.5, 0.5),
-			BackgroundColor3 = Theme["Color Hub 2"],
-			BackgroundTransparency = 0.05,
-			ZIndex = 50
+			BackgroundColor3 = Color3.fromRGB(12, 12, 12), -- preto forte
+			BackgroundTransparency = 0,
+			ZIndex = 60
 		})
-		Make("Corner", Panel, UDim.new(0, 10))
-		Make("Stroke", Panel)
-		Make("Gradient", Panel, {Rotation = 45})
+		Make("Corner", Panel, UDim.new(0, 12))
 		
-		local Title = InsertTheme(Create("TextLabel", Panel, {
-			Size = UDim2.new(1, -20, 0, 24),
-			Position = UDim2.new(0, 10, 0, 8),
+		-- Borda branca + preta
+		Create("UIStroke", Panel, {
+			Color = Color3.fromRGB(255, 255, 255),
+			Thickness = 2,
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		})
+		Create("UIStroke", Panel, {
+			Color = Color3.fromRGB(0, 0, 0),
+			Thickness = 1,
+			Transparency = 0.4,
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		})
+		
+		local Title = Create("TextLabel", Panel, {
+			Size = UDim2.new(1, -20, 0, 26),
+			Position = UDim2.new(0, 12, 0, 10),
 			BackgroundTransparency = 1,
 			Font = Enum.Font.GothamBold,
 			Text = "Configurações",
-			TextColor3 = Theme["Color Text"],
-			TextSize = 14,
-			TextXAlignment = "Left"
-		}), "Text")
+			TextColor3 = Color3.fromRGB(255, 255, 255),
+			TextSize = 15,
+			TextXAlignment = "Left",
+			ZIndex = 61
+		})
 		
-		local SizeLabel = InsertTheme(Create("TextLabel", Panel, {
+		local SizeLabel = Create("TextLabel", Panel, {
 			Size = UDim2.new(1, -20, 0, 18),
-			Position = UDim2.new(0, 10, 0, 38),
+			Position = UDim2.new(0, 12, 0, 42),
 			BackgroundTransparency = 1,
 			Font = Enum.Font.GothamMedium,
 			Text = "Tamanho da Interface: " .. CurrentScaleLevel,
-			TextColor3 = Theme["Color Dark Text"],
-			TextSize = 11,
+			TextColor3 = Color3.fromRGB(220, 220, 220),
+			TextSize = 12,
 			TextXAlignment = "Left",
-			Name = "SizeLabel"
-		}), "DarkText")
-		
-		-- Slider Holder
-		local SliderHolder = Create("Frame", Panel, {
-			Size = UDim2.new(1, -30, 0, 20),
-			Position = UDim2.new(0.5, 0, 0, 70),
-			AnchorPoint = Vector2.new(0.5, 0),
-			BackgroundTransparency = 1
+			Name = "SizeLabel",
+			ZIndex = 61
 		})
 		
-		local SliderBar = InsertTheme(Create("Frame", SliderHolder, {
-			Size = UDim2.new(1, 0, 0, 6),
+		local SliderHolder = Create("Frame", Panel, {
+			Size = UDim2.new(1, -30, 0, 22),
+			Position = UDim2.new(0.5, 0, 0, 75),
+			AnchorPoint = Vector2.new(0.5, 0),
+			BackgroundTransparency = 1,
+			ZIndex = 61
+		})
+		
+		local SliderBar = Create("Frame", SliderHolder, {
+			Size = UDim2.new(1, 0, 0, 7),
 			Position = UDim2.new(0, 0, 0.5, 0),
 			AnchorPoint = Vector2.new(0, 0.5),
-			BackgroundColor3 = Theme["Color Stroke"]
-		}), "Stroke")
+			BackgroundColor3 = Color3.fromRGB(50, 50, 50),
+			ZIndex = 61
+		})
 		Make("Corner", SliderBar, UDim.new(1, 0))
 		
-		local Fill = InsertTheme(Create("Frame", SliderBar, {
+		local Fill = Create("Frame", SliderBar, {
 			Size = UDim2.new((CurrentScaleLevel - 1) / 9, 0, 1, 0),
-			BackgroundColor3 = Theme["Color Theme"]
-		}), "Theme")
+			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			ZIndex = 62
+		})
 		Make("Corner", Fill, UDim.new(1, 0))
 		
 		local Knob = Create("Frame", SliderBar, {
-			Size = UDim2.new(0, 14, 0, 14),
+			Size = UDim2.new(0, 16, 0, 16),
 			Position = UDim2.new((CurrentScaleLevel - 1) / 9, 0, 0.5, 0),
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-			ZIndex = 2
+			ZIndex = 63
 		})
 		Make("Corner", Knob, UDim.new(1, 0))
+		Create("UIStroke", Knob, {
+			Color = Color3.fromRGB(0, 0, 0),
+			Thickness = 1.5
+		})
 		
 		local dragging = false
 		local function UpdateSlider(inputPos)
 			local absPos = SliderBar.AbsolutePosition
 			local absSize = SliderBar.AbsoluteSize
 			local relative = math.clamp((inputPos.X - absPos.X) / absSize.X, 0, 1)
-			local level = 1 + relative * 9
-			level = math.clamp(math.floor(level + 0.5), 1, 10)
+			local level = math.clamp(math.floor(1 + relative * 9 + 0.5), 1, 10)
 			
 			Fill.Size = UDim2.new((level - 1) / 9, 0, 1, 0)
 			Knob.Position = UDim2.new((level - 1) / 9, 0, 0.5, 0)
@@ -1839,51 +1870,47 @@ function redzlib:MakeWindow(Configs)
 				dragging = true
 			end
 		end)
-		
 		SliderBar.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 				dragging = true
 				UpdateSlider(input.Position)
 			end
 		end)
-		
 		UserInputService.InputChanged:Connect(function(input)
 			if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 				UpdateSlider(input.Position)
 			end
 		end)
-		
 		UserInputService.InputEnded:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 				dragging = false
 			end
 		end)
 		
-		-- Botão Fechar
 		local CloseSettings = Create("TextButton", Panel, {
-			Size = UDim2.new(0, 70, 0, 26),
-			Position = UDim2.new(0.5, 0, 1, -12),
+			Size = UDim2.new(0, 90, 0, 28),
+			Position = UDim2.new(0.5, 0, 1, -14),
 			AnchorPoint = Vector2.new(0.5, 1),
-			BackgroundColor3 = Theme["Color Theme"],
+			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			Text = "Fechar",
 			Font = Enum.Font.GothamBold,
-			TextSize = 12,
-			TextColor3 = Color3.fromRGB(255, 255, 255),
-			AutoButtonColor = false
+			TextSize = 13,
+			TextColor3 = Color3.fromRGB(0, 0, 0),
+			AutoButtonColor = false,
+			ZIndex = 62
 		})
-		Make("Corner", CloseSettings, UDim.new(0, 6))
+		Make("Corner", CloseSettings, UDim.new(0, 7))
 		
 		CloseSettings.Activated:Connect(function()
-			CreateTween({Panel, "Size", UDim2.fromOffset(260 * 0.9, 140 * 0.9), 0.15})
+			CreateTween({Panel, "Size", UDim2.fromOffset(270 * 0.9, 155 * 0.9), 0.15})
 			CreateTween({Panel, "BackgroundTransparency", 1, 0.15, true})
 			Panel:Destroy()
 		end)
 		
-		-- Animação de entrada
-		Panel.Size = UDim2.fromOffset(260 * 1.1, 140 * 1.1)
+		Panel.Size = UDim2.fromOffset(270 * 1.08, 155 * 1.08)
 		Panel.BackgroundTransparency = 1
-		CreateTween({Panel, "Size", UDim2.fromOffset(260, 140), 0.2})
-		CreateTween({Panel, "BackgroundTransparency", 0.05, 0.2})
+		CreateTween({Panel, "Size", UDim2.fromOffset(270, 155), 0.2})
+		CreateTween({Panel, "BackgroundTransparency", 0, 0.2})
 	end
 	
 	SettingsButton.Activated:Connect(function()
@@ -2058,7 +2085,7 @@ function redzlib:MakeWindow(Configs)
 		
 		local TabSelect = Make("Button", MainScroll, {
 			Size = UDim2.new(1, 0, 0, 24)
-		})Make("Corner", TabSelect, UDim.new(0, 12)) -- borda mais redonda
+		})Make("Corner", TabSelect, UDim.new(0, 12)) -- mais redonda
 		
 		local TabStroke = Create("UIStroke", TabSelect, {
 			Color = Color3.fromRGB(0, 0, 0),
@@ -2089,7 +2116,7 @@ function redzlib:MakeWindow(Configs)
 			ImageTransparency = (FirstTab and 0.3) or 0
 		}), "NoTint")
 		
-		-- Indicador: um lado branco e o outro preto
+		-- Indicador branco + preto
 		local SelectedWhite = Create("Frame", TabSelect, {
 			Size = FirstTab and UDim2.new(0, 3, 0, 4) or UDim2.new(0, 3, 0, 14),
 			Position = UDim2.new(0, 1, 0.5),
